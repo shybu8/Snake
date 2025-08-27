@@ -40,7 +40,7 @@ int main() {
       .direction = Direction::Right,
   };
 
-  Direction turn_dir;
+  Direction turn_dir = Direction::Right;
   float snake_delay{snake.move_delay()};
   string score_str = fmt::format("Score: {}", snake.body_blocks->size() - 2);
   auto game_state = GameState::Ongoing;
