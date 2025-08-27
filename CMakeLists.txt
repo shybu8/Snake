@@ -12,7 +12,6 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 
 add_subdirectory(external/raylib)
 add_subdirectory(external/fmt)
@@ -22,4 +21,5 @@ target_link_libraries(${PROJECT_NAME} fmt)
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME} m)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
