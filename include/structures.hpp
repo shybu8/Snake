@@ -30,7 +30,7 @@ enum class GameState { Ongoing, Over };
 template <typename T> T mod(T lhs, T rhs);
 
 struct Snake {
-  unique_ptr<vector<Vec2>> body_blocks;
+  vector<Vec2> body_blocks;
   float speed;
   Direction previous_direction;
   Direction direction;

@@ -1,13 +1,11 @@
 #include "structures.hpp"
 
-#include <memory>
 #include <raylib.h>
 #include <vector>
 
 #include <fmt/base.h>
 #include <fmt/format.h>
 
-using std::make_unique;
 using std::string;
 using std::uint64_t;
 using std::vector;
@@ -32,9 +30,8 @@ int main() {
   Vec2 food = {};
   setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
 
-  auto snake_body = vector<Vec2>{{1, 0}, {0, 0}};
   Snake snake = {
-      .body_blocks = make_unique<vector<Vec2>>(snake_body),
+      .body_blocks = vector<Vec2>{{1, 0}, {0, 0}},
       .speed = 3,
       .previous_direction = Direction::Right,
       .direction = Direction::Right,
@@ -42,7 +39,7 @@ int main() {
 
   Direction turn_dir = Direction::Right;
   float snake_delay{snake.move_delay()};
-  string score_str = fmt::format("Score: {}", snake.body_blocks->size() - 2);
+  string score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
   auto game_state = GameState::Ongoing;
 
   float elapsed = 0;
@@ -64,7 +61,7 @@ int main() {
       if (elapsed > snake_delay) {
         Vec2 next_head_pos = snake.next_head_pos(grid_dims);
         if (next_head_pos == food) {
-          snake.body_blocks->push_back({});
+          snake.body_blocks.push_back({});
           snake.speed += 0.1;
 
           do
@@ -72,7 +69,7 @@ int main() {
           while (snake.collision(food, true));
 
           snake_delay = snake.move_delay();
-          score_str = fmt::format("Score: {}", snake.body_blocks->size() - 2);
+          score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
         }
 
         snake.advance(grid_dims);
@@ -89,7 +86,7 @@ int main() {
         DrawText(score_str.c_str(), 0, 0, 28, WHITE);
         DrawRectangle(food.x * grid_square_size, food.y * grid_square_size,
                       grid_square_size, grid_square_size, white);
-        for (Vec2 pos : *snake.body_blocks)
+        for (Vec2 pos : snake.body_blocks)
           DrawRectangle(pos.x * grid_square_size, pos.y * grid_square_size,
                         grid_square_size, grid_square_size, white);
       }
@@ -110,7 +107,7 @@ int main() {
       ClearBackground(black);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
-        for (Vec2 pos : *snake.body_blocks)
+        for (Vec2 pos : snake.body_blocks)
           DrawRectangle(pos.x * grid_square_size, pos.y * grid_square_size,
                         grid_square_size, grid_square_size, white);
       EndDrawing();
