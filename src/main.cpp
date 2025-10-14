@@ -1,3 +1,4 @@
+#include "resources.hpp"
 #include "structures.hpp"
 
 #include <raylib.h>
@@ -62,8 +63,8 @@ int main() {
   const Vec2 grid_dims = {screen.x / grid_square_size,
                           screen.y / grid_square_size};
 
-  Texture2D grass = LoadTexture("resources/grass.png");
-  SetTextureFilter(grass, 0);
+  const auto resources = Resources();
+
   RenderTexture2D background = LoadRenderTexture(
       true_texture_res * grid_dims.x, true_texture_res * grid_dims.y);
   BeginTextureMode(background);
@@ -71,7 +72,7 @@ int main() {
     uint64_t y = i * true_texture_res;
     for (int j = 0; j < grid_dims.x; j++) {
       uint64_t x = j * true_texture_res;
-      DrawTexture(grass, x, y, WHITE);
+      DrawTexture(resources.grass, x, y, WHITE);
     }
   }
   EndTextureMode();
@@ -97,18 +98,6 @@ int main() {
       .previous_direction = Direction::Right,
       .direction = Direction::Right,
   };
-
-  Texture2D snake_textures[4] = {
-      LoadTexture("resources/snake_straight.png"),
-      LoadTexture("resources/snake_turn.png"),
-      LoadTexture("resources/snake_head.png"),
-      LoadTexture("resources/snake_tail.png"),
-  };
-  for (auto texture : snake_textures)
-    SetTextureFilter(texture, 0);
-
-  Texture2D apple_texture = LoadTexture("resources/apple.png");
-  SetTextureFilter(apple_texture, 0);
 
   Direction turn_dir = Direction::Right;
   float snake_delay{snake.move_delay()};
@@ -159,13 +148,13 @@ int main() {
       {
         ClearBackground(BLACK);
         DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
-        DrawTextureEx(apple_texture,
+        DrawTextureEx(resources.apple,
                       {static_cast<float>(food.x * grid_square_size),
                        static_cast<float>(food.y * grid_square_size)},
                       0, texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
-          Texture2D texture = snake_textures[static_cast<int>(cell.kind)];
+          Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
           Vec2 pos = snake.body_blocks.at(i) * Vec2(grid_square_size) +
                      rotated_texture_pos_adjustment(cell.orientation,
                                                     Vec2(grid_square_size));
