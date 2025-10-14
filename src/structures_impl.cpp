@@ -1,6 +1,6 @@
 #include "structures.hpp"
 
-template <typename T> T mod(T lhs, T rhs) { return (lhs % rhs + rhs) % rhs; };
+auto mod(auto lhs, auto rhs) { return (lhs % rhs + rhs) % rhs; };
 
 bool Snake::take_turn(Direction dir) {
   using enum Direction;
@@ -47,17 +47,17 @@ void Snake::advance(Vec2 grid_dims) {
   this->body_blocks.at(0) = this->next_head_pos(grid_dims);
 
   // BEGIN Snake turns trick
-  auto next_to_head = &texture_cells.at(1);
+  auto &next_to_head = texture_cells.at(1);
   if (previous_direction != direction) {
     int s = static_cast<int>(direction) - static_cast<int>(previous_direction);
     if (s == 1 or s == -3)
       s = 2;
-    next_to_head->kind = SnakeTextureKind::Turn;
-    next_to_head->orientation = static_cast<Direction>(
+    next_to_head.kind = SnakeTextureKind::Turn;
+    next_to_head.orientation = static_cast<Direction>(
         mod((static_cast<int>(previous_direction) + s), 4));
   } else {
-    next_to_head->kind = SnakeTextureKind::Straight;
-    next_to_head->orientation = direction;
+    next_to_head.kind = SnakeTextureKind::Straight;
+    next_to_head.orientation = direction;
   }
   // END
 

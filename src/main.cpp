@@ -59,7 +59,6 @@ int main() {
   const int64_t grid_square_size{64};
   const float texture_scale =
       grid_square_size / static_cast<float>(true_texture_res);
-  ;
   const Vec2 grid_dims = {screen.x / grid_square_size,
                           screen.y / grid_square_size};
 
@@ -142,7 +141,7 @@ int main() {
 
           do
             setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
-          while (snake.collision(food, true));
+          while (snake.collision(food));
 
           snake_delay = snake.move_delay();
           score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);

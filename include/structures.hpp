@@ -44,7 +44,7 @@ enum class Direction {
 
 enum class GameState { Ongoing, Over, MainMenu };
 
-template <typename T> T mod(T lhs, T rhs);
+auto mod(auto lhs, auto rhs);
 
 enum class SnakeTextureKind {
   Straight = 0,
@@ -68,6 +68,6 @@ struct Snake {
   bool take_turn(Direction dir);
   Vec2 next_head_pos(Vec2 grid_dims);
   void advance(Vec2 grid_dims);
-  bool collision(Vec2 target, bool include_head);
+  bool collision(Vec2 target, bool include_head = true);
   float move_delay();
 };
