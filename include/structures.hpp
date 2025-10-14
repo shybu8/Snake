@@ -42,7 +42,7 @@ enum class Direction {
   Left,
 };
 
-enum class GameState { Ongoing, Over };
+enum class GameState { Ongoing, Over, MainMenu };
 
 template <typename T> T mod(T lhs, T rhs);
 

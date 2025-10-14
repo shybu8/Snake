@@ -6,6 +6,9 @@
 #include <fmt/base.h>
 #include <fmt/format.h>
 
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
+
 using std::string;
 using std::uint64_t;
 using std::vector;
@@ -47,16 +50,33 @@ float dir_to_angle(Direction dir) {
 
 int main() {
   const Vec2 screen{1200, 720};
-  const Color white{255, 255, 255, 255};
-  const Color black{0, 0, 0, 255};
 
   InitWindow(screen.x, screen.y, "Snake");
   SetTargetFPS(60);
+  GuiSetStyle(DEFAULT, TEXT_SIZE, 32);
 
+  const int64_t true_texture_res = 32;
   const int64_t grid_square_size{64};
-  const float texture_scale = grid_square_size / 32.0;
+  const float texture_scale =
+      grid_square_size / static_cast<float>(true_texture_res);
+  ;
   const Vec2 grid_dims = {screen.x / grid_square_size,
                           screen.y / grid_square_size};
+
+  Texture2D grass = LoadTexture("resources/grass.png");
+  SetTextureFilter(grass, 0);
+  RenderTexture2D background = LoadRenderTexture(
+      true_texture_res * grid_dims.x, true_texture_res * grid_dims.y);
+  BeginTextureMode(background);
+  for (int i = 0; i < grid_dims.y; i++) {
+    uint64_t y = i * true_texture_res;
+    for (int j = 0; j < grid_dims.x; j++) {
+      uint64_t x = j * true_texture_res;
+      DrawTexture(grass, x, y, WHITE);
+    }
+  }
+  EndTextureMode();
+
   const float blinkng_delay = 0.5;
   Vec2 food = {};
   setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
@@ -94,10 +114,11 @@ int main() {
   Direction turn_dir = Direction::Right;
   float snake_delay{snake.move_delay()};
   string score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
-  auto game_state = GameState::Ongoing;
+  auto game_state = GameState::MainMenu;
+  bool should_quit = WindowShouldClose();
 
   float elapsed = 0;
-  while (!WindowShouldClose()) {
+  while (!should_quit) {
     switch (game_state) {
 
     case GameState::Ongoing:
@@ -137,15 +158,12 @@ int main() {
 
       BeginDrawing();
       {
-        ClearBackground(black);
+        ClearBackground(BLACK);
+        DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
         DrawTextureEx(apple_texture,
-                      {food.x * grid_square_size, food.y * grid_square_size}, 0,
-                      texture_scale, white);
-        // DrawRectangle(food.x * grid_square_size, food.y * grid_square_size,
-        //               grid_square_size, grid_square_size, white);
-        // for (Vec2 pos : snake.body_blocks)
-        //   DrawRectangle(pos.x * grid_square_size, pos.y * grid_square_size,
-        //                 grid_square_size, grid_square_size, white);
+                      {static_cast<float>(food.x * grid_square_size),
+                       static_cast<float>(food.y * grid_square_size)},
+                      0, texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
           Texture2D texture = snake_textures[static_cast<int>(cell.kind)];
@@ -156,11 +174,9 @@ int main() {
               texture,
               Vector2{static_cast<float>(pos.x), static_cast<float>(pos.y)},
               dir_to_angle(snake.texture_cells.at(i).orientation),
-              texture_scale, white);
+              texture_scale, WHITE);
         }
         DrawText(score_str.c_str(), 0, 0, 28, WHITE);
-        // DrawTextureEx(snake_straight_texture, {0, 0}, 0, texture_scale,
-        // white);
       }
       EndDrawing();
       break;
@@ -176,17 +192,35 @@ int main() {
         draw_snake = true;
 
       BeginDrawing();
-      ClearBackground(black);
+      ClearBackground(BLACK);
+      DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
         for (Vec2 pos : snake.body_blocks)
           DrawRectangle(pos.x * grid_square_size, pos.y * grid_square_size,
-                        grid_square_size, grid_square_size, white);
+                        grid_square_size, grid_square_size, WHITE);
       EndDrawing();
+      break;
 
+    case GameState::MainMenu:
+      float scr_q = screen.x / 4;
+      float height = 72;
+      float pos_x = scr_q;
+      float pos_y = screen.y / 6;
+      BeginDrawing();
+      ClearBackground(GRAY);
+      GuiDrawText("Snake", {pos_x, pos_y, scr_q * 2, height}, TEXT_ALIGN_MIDDLE,
+                  WHITE);
+      if (GuiButton({pos_x, pos_y + 72 * 2, scr_q * 2, height}, "Play"))
+        game_state = GameState::Ongoing;
+      if (GuiButton({pos_x, pos_y + 72 * 4, scr_q * 2, height}, "Quit"))
+        should_quit = true;
+
+      EndDrawing();
       break;
     }
+    should_quit |= WindowShouldClose();
   };
-
+  UnloadTexture(background.texture);
   CloseWindow();
 }

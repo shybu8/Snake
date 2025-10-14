@@ -9,9 +9,11 @@ set(SOURCES
 	src/structures_impl.cpp
 )
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_include_directories(${PROJECT_NAME} PRIVATE external/raygui/src)
 
 add_subdirectory(external/raylib)
 add_subdirectory(external/fmt)
