@@ -62,7 +62,7 @@ int main() {
   const int64_t true_texture_res = 32;
   const IVec2 grid_dims{static_cast<int>(16 * 1.5), static_cast<int>(9 * 1.5)};
   float grid_square_mul = static_cast<float>(screen.x) / grid_dims.x;
-  Grid grid{static_cast<uint64_t>(grid_square_mul)};
+  auto grid = Grid(static_cast<uint64_t>(grid_square_mul), IVec2(0));
   float texture_scale = grid_square_mul / true_texture_res;
 
   const auto resources = Resources();
@@ -112,10 +112,20 @@ int main() {
     if (IsWindowResized()) {
       screen.x = GetScreenWidth();
       screen.y = GetScreenHeight();
-      grid_square_mul = static_cast<float>(screen.x) / grid_dims.x;
-      grid.size = static_cast<uint64_t>(grid_square_mul);
-      // grid_square_size = static_cast<int>(grid_square_mul);
-      texture_scale = grid_square_mul / true_texture_res;
+      float grid_square_mul_x = static_cast<float>(screen.x) / grid_dims.x;
+      float grid_square_mul_y = static_cast<float>(screen.y) / grid_dims.y;
+      if (grid_square_mul_x < grid_square_mul_y) {
+        grid_square_mul = grid_square_mul_x;
+        grid.size = static_cast<uint64_t>(grid_square_mul);
+        grid.offset.y = (screen.y - grid.size * grid_dims.y) / 2;
+        grid.offset.x = 0;
+      } else {
+        grid_square_mul = grid_square_mul_y;
+        grid.size = static_cast<uint64_t>(grid_square_mul);
+        grid.offset.x = (screen.x - grid.size * grid_dims.x) / 2;
+        grid.offset.y = 0;
+      }
+      texture_scale = static_cast<float>(grid.size) / true_texture_res;
     }
 
     switch (game_state) {
@@ -158,13 +168,14 @@ int main() {
       BeginDrawing();
       {
         ClearBackground(BLACK);
-        DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
+        DrawTextureEx(background.texture, grid.at(0, 0).raylib_vec(), 0.0,
+                      texture_scale, WHITE);
         DrawTextureEx(resources.apple, grid.at(food.x, food.y).raylib_vec(), 0,
                       texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
           Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
-          IVec2 pos = snake.body_blocks.at(i) * IVec2(grid.size) +
+          IVec2 pos = grid.at(snake.body_blocks.at(i)) +
                       rotated_texture_pos_adjustment(cell.orientation,
                                                      IVec2(grid.size));
           DrawTextureEx(texture, pos.raylib_vec(),
@@ -188,7 +199,8 @@ int main() {
 
       BeginDrawing();
       ClearBackground(BLACK);
-      DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
+      DrawTextureEx(background.texture, grid.at(0, 0).raylib_vec(), 0.0,
+                    texture_scale, WHITE);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
         for (IVec2 pos : snake.body_blocks)
