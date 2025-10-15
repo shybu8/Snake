@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
+#include <raylib.h>
 #include <vector>
 
 using std::int64_t;
@@ -11,30 +12,39 @@ using std::uint64_t;
 using std::unique_ptr;
 using std::vector;
 
-struct Vec2 {
+struct IVec2 {
   int64_t x;
   int64_t y;
 
-  Vec2() {
+  IVec2() {
     x = 0;
     y = 0;
   }
 
-  Vec2(int64_t value) {
+  IVec2(int64_t value) {
     x = value;
     y = value;
   }
-  Vec2(int64_t x, int64_t y) {
+  IVec2(int64_t x, int64_t y) {
     this->x = x;
     this->y = y;
   }
 
   uint64_t len() { return sqrt(x * x + y * y); };
 
-  bool operator==(const Vec2 &rhs) const { return x == rhs.x and y == rhs.y; }
-  Vec2 operator*(const Vec2 &rhs) const { return Vec2{x * rhs.x, y * rhs.y}; }
-  Vec2 operator+(const Vec2 &rhs) const { return Vec2{x + rhs.x, y + rhs.y}; }
-  Vec2 operator-(const Vec2 &rhs) const { return Vec2{x - rhs.x, y - rhs.y}; }
+  bool operator==(const IVec2 &rhs) const { return x == rhs.x and y == rhs.y; }
+  IVec2 operator*(const IVec2 &rhs) const {
+    return IVec2{x * rhs.x, y * rhs.y};
+  }
+  IVec2 operator+(const IVec2 &rhs) const {
+    return IVec2{x + rhs.x, y + rhs.y};
+  }
+  IVec2 operator-(const IVec2 &rhs) const {
+    return IVec2{x - rhs.x, y - rhs.y};
+  }
+  Vector2 raylib_vec() const {
+    return Vector2{static_cast<float>(x), static_cast<float>(y)};
+  }
 };
 
 enum class Direction {
@@ -61,15 +71,22 @@ struct SnakeTextureCell {
 };
 
 struct Snake {
-  vector<Vec2> body_blocks;
+  vector<IVec2> body_blocks;
   vector<SnakeTextureCell> texture_cells;
   float speed;
   Direction previous_direction;
   Direction direction;
 
   bool take_turn(Direction dir);
-  Vec2 next_head_pos(Vec2 grid_dims);
-  void advance(Vec2 grid_dims);
-  bool collision(Vec2 target, bool include_head = true);
+  IVec2 next_head_pos(IVec2 grid_dims);
+  void advance(IVec2 grid_dims);
+  bool collision(IVec2 target, bool include_head = true);
   float move_delay();
+};
+
+struct Grid {
+  uint64_t size;
+
+  Vector2 at(uint64_t x, uint64_t y);
+  Vector2 at(IVec2 pos);
 };

@@ -14,24 +14,24 @@ using std::string;
 using std::uint64_t;
 using std::vector;
 
-void setRandomInDims(Vec2 &target, int64_t x, int64_t y) {
+void setRandomInDims(IVec2 &target, int64_t x, int64_t y) {
   target.x = GetRandomValue(0, x);
   target.y = GetRandomValue(0, y);
 }
 
-Vec2 rotated_texture_pos_adjustment(Direction orientation, Vec2 resolution) {
+IVec2 rotated_texture_pos_adjustment(Direction orientation, IVec2 resolution) {
   using enum Direction;
   switch (orientation) {
   case Up:
-    return Vec2{0, 0};
+    return IVec2{0, 0};
   case Right:
-    return Vec2{resolution.x, 0};
+    return IVec2{resolution.x, 0};
   case Down:
-    return Vec2{resolution.x, resolution.y};
+    return IVec2{resolution.x, resolution.y};
   case Left:
-    return Vec2{0, resolution.y};
+    return IVec2{0, resolution.y};
   }
-  return Vec2{};
+  return IVec2{};
 }
 
 float dir_to_angle(Direction dir) {
@@ -50,18 +50,18 @@ float dir_to_angle(Direction dir) {
 }
 
 int main() {
-  const Vec2 screen{1200, 720};
+  const IVec2 screen{1280, 720};
 
   InitWindow(screen.x, screen.y, "Snake");
+  SetWindowState(FLAG_WINDOW_RESIZABLE);
   SetTargetFPS(60);
   GuiSetStyle(DEFAULT, TEXT_SIZE, 32);
 
   const int64_t true_texture_res = 32;
-  const int64_t grid_square_size{64};
-  const float texture_scale =
-      grid_square_size / static_cast<float>(true_texture_res);
-  const Vec2 grid_dims = {screen.x / grid_square_size,
-                          screen.y / grid_square_size};
+  const IVec2 grid_dims{static_cast<int>(16 * 1.5), static_cast<int>(9 * 1.5)};
+  float grid_square_mul = static_cast<float>(screen.x) / grid_dims.x;
+  Grid grid{static_cast<uint64_t>(grid_square_mul)};
+  float texture_scale = grid_square_mul / true_texture_res;
 
   const auto resources = Resources();
 
@@ -78,11 +78,11 @@ int main() {
   EndTextureMode();
 
   const float blinkng_delay = 0.5;
-  Vec2 food = {};
+  IVec2 food = {};
   setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
 
   Snake snake = {
-      .body_blocks = vector<Vec2>{{1, 0}, {0, 0}},
+      .body_blocks = vector<IVec2>{{1, 0}, {0, 0}},
       .texture_cells =
           vector<SnakeTextureCell>{
               {
@@ -107,6 +107,13 @@ int main() {
 
   float elapsed = 0;
   while (!should_quit) {
+    if (IsWindowResized()) {
+      grid_square_mul = static_cast<float>(GetScreenWidth()) / grid_dims.x;
+      grid.size = static_cast<uint64_t>(grid_square_mul);
+      // grid_square_size = static_cast<int>(grid_square_mul);
+      texture_scale = grid_square_mul / true_texture_res;
+    }
+
     switch (game_state) {
 
     case GameState::Ongoing:
@@ -122,7 +129,7 @@ int main() {
 
       elapsed += GetFrameTime();
       if (elapsed > snake_delay) {
-        Vec2 next_head_pos = snake.next_head_pos(grid_dims);
+        IVec2 next_head_pos = snake.next_head_pos(grid_dims);
         if (next_head_pos == food) {
           snake.body_blocks.push_back({});
           snake.texture_cells.push_back({});
@@ -148,21 +155,17 @@ int main() {
       {
         ClearBackground(BLACK);
         DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
-        DrawTextureEx(resources.apple,
-                      {static_cast<float>(food.x * grid_square_size),
-                       static_cast<float>(food.y * grid_square_size)},
-                      0, texture_scale, WHITE);
+        DrawTextureEx(resources.apple, grid.at(food.x, food.y), 0,
+                      texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
           Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
-          Vec2 pos = snake.body_blocks.at(i) * Vec2(grid_square_size) +
-                     rotated_texture_pos_adjustment(cell.orientation,
-                                                    Vec2(grid_square_size));
-          DrawTextureEx(
-              texture,
-              Vector2{static_cast<float>(pos.x), static_cast<float>(pos.y)},
-              dir_to_angle(snake.texture_cells.at(i).orientation),
-              texture_scale, WHITE);
+          IVec2 pos = snake.body_blocks.at(i) * IVec2(grid.size) +
+                      rotated_texture_pos_adjustment(cell.orientation,
+                                                     IVec2(grid.size));
+          DrawTextureEx(texture, pos.raylib_vec(),
+                        dir_to_angle(snake.texture_cells.at(i).orientation),
+                        texture_scale, WHITE);
         }
         DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       }
@@ -184,9 +187,9 @@ int main() {
       DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
-        for (Vec2 pos : snake.body_blocks)
-          DrawRectangle(pos.x * grid_square_size, pos.y * grid_square_size,
-                        grid_square_size, grid_square_size, WHITE);
+        for (IVec2 pos : snake.body_blocks)
+          DrawRectangleV(grid.at(pos), IVec2{grid.size, grid.size}.raylib_vec(),
+                         WHITE);
       EndDrawing();
       break;
 

@@ -18,8 +18,8 @@ bool Snake::take_turn(Direction dir) {
   return true;
 }
 
-Vec2 Snake::next_head_pos(Vec2 grid_dims) {
-  Vec2 head_pos{this->body_blocks.at(0)};
+IVec2 Snake::next_head_pos(IVec2 grid_dims) {
+  IVec2 head_pos{this->body_blocks.at(0)};
   switch (this->direction) {
   case Direction::Up:
     head_pos.y = mod(head_pos.y - 1, grid_dims.y);
@@ -37,7 +37,7 @@ Vec2 Snake::next_head_pos(Vec2 grid_dims) {
   return head_pos;
 }
 
-void Snake::advance(Vec2 grid_dims) {
+void Snake::advance(IVec2 grid_dims) {
   for (int64_t i = this->body_blocks.size() - 1; i > 0; i--) {
     this->body_blocks.at(i) = this->body_blocks.at(i - 1);
   }
@@ -62,8 +62,8 @@ void Snake::advance(Vec2 grid_dims) {
   // END
 
   // Tail
-  Vec2 pre_tail = this->body_blocks.at(this->body_blocks.size() - 2);
-  Vec2 tail_sub = pre_tail - this->body_blocks.back();
+  IVec2 pre_tail = this->body_blocks.at(this->body_blocks.size() - 2);
+  IVec2 tail_sub = pre_tail - this->body_blocks.back();
   if (tail_sub.x == 1)
     texture_cells.back().orientation = Direction::Right;
   else if (tail_sub.x == -1)
@@ -79,7 +79,7 @@ void Snake::advance(Vec2 grid_dims) {
   this->texture_cells.at(0).orientation = this->direction;
 }
 
-bool Snake::collision(Vec2 target, bool include_head) {
+bool Snake::collision(IVec2 target, bool include_head) {
   for (uint64_t i = !include_head; i < this->body_blocks.size(); i++)
     if (this->body_blocks.at(i) == target)
       return true;
@@ -87,3 +87,13 @@ bool Snake::collision(Vec2 target, bool include_head) {
 }
 
 float Snake::move_delay() { return 1 / this->speed; }
+
+Vector2 Grid::at(uint64_t x, uint64_t y) {
+  float size_f = static_cast<float>(size);
+  return Vector2{size_f * x, size_f * y};
+}
+
+Vector2 Grid::at(IVec2 pos) {
+  return Vector2{size * static_cast<float>(pos.x),
+                 size * static_cast<float>(pos.y)};
+}
