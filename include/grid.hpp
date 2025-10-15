@@ -6,11 +6,11 @@
 using std::uint64_t;
 
 struct Grid {
-  uint64_t size;
-  IVec2 offset;
+  float size;
+  Vector2 offset;
 
-  Grid(uint64_t size, IVec2 offset);
+  Grid(float size, Vector2 offset);
 
-  IVec2 at(uint64_t x, uint64_t y);
-  IVec2 at(IVec2 pos);
+  Vector2 at(uint64_t x, uint64_t y);
+  Vector2 at(IVec2 pos);
 };

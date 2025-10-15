@@ -1,3 +1,4 @@
+#include "raylib.h"
 #include <resources.hpp>
 #include <snake.hpp>
 
@@ -67,4 +68,8 @@ Resources::Resources() {
   SetTextureFilter(snake[1], 0);
   SetTextureFilter(snake[2], 0);
   SetTextureFilter(snake[3], 0);
+  SetTextureWrap(snake[0], TEXTURE_WRAP_CLAMP);
+  SetTextureWrap(snake[1], TEXTURE_WRAP_CLAMP);
+  SetTextureWrap(snake[2], TEXTURE_WRAP_CLAMP);
+  SetTextureWrap(snake[3], TEXTURE_WRAP_CLAMP);
 }

@@ -1,5 +1,6 @@
 #include "grid.hpp"
 #include "ivec2.hpp"
+#include "raymath.h"
 #include "resources.hpp"
 #include "snake.hpp"
 
@@ -21,19 +22,20 @@ void setRandomInDims(IVec2 &target, int64_t x, int64_t y) {
   target.y = GetRandomValue(0, y);
 }
 
-IVec2 rotated_texture_pos_adjustment(Direction orientation, IVec2 resolution) {
+Vector2 rotated_texture_pos_adjustment(Direction orientation,
+                                       Vector2 resolution) {
   using enum Direction;
   switch (orientation) {
   case Up:
-    return IVec2{0, 0};
+    return Vector2{0, 0};
   case Right:
-    return IVec2{resolution.x, 0};
+    return Vector2{resolution.x, 0};
   case Down:
-    return IVec2{resolution.x, resolution.y};
+    return Vector2{resolution.x, resolution.y};
   case Left:
-    return IVec2{0, resolution.y};
+    return Vector2{0, resolution.y};
   }
-  return IVec2{};
+  return Vector2{};
 }
 
 float dir_to_angle(Direction dir) {
@@ -62,7 +64,7 @@ int main() {
   const int64_t true_texture_res = 32;
   const IVec2 grid_dims{static_cast<int>(16 * 1.5), static_cast<int>(9 * 1.5)};
   float grid_square_mul = static_cast<float>(screen.x) / grid_dims.x;
-  auto grid = Grid(static_cast<uint64_t>(grid_square_mul), IVec2(0));
+  auto grid = Grid(grid_square_mul, Vector2{0, 0});
   float texture_scale = grid_square_mul / true_texture_res;
 
   const auto resources = Resources();
@@ -116,12 +118,12 @@ int main() {
       float grid_square_mul_y = static_cast<float>(screen.y) / grid_dims.y;
       if (grid_square_mul_x < grid_square_mul_y) {
         grid_square_mul = grid_square_mul_x;
-        grid.size = static_cast<uint64_t>(grid_square_mul);
+        grid.size = grid_square_mul;
         grid.offset.y = (screen.y - grid.size * grid_dims.y) / 2;
         grid.offset.x = 0;
       } else {
         grid_square_mul = grid_square_mul_y;
-        grid.size = static_cast<uint64_t>(grid_square_mul);
+        grid.size = grid_square_mul;
         grid.offset.x = (screen.x - grid.size * grid_dims.x) / 2;
         grid.offset.y = 0;
       }
@@ -168,17 +170,18 @@ int main() {
       BeginDrawing();
       {
         ClearBackground(BLACK);
-        DrawTextureEx(background.texture, grid.at(0, 0).raylib_vec(), 0.0,
-                      texture_scale, WHITE);
-        DrawTextureEx(resources.apple, grid.at(food.x, food.y).raylib_vec(), 0,
+        DrawTextureEx(background.texture, grid.at(0, 0), 0.0, texture_scale,
+                      WHITE);
+        DrawTextureEx(resources.apple, grid.at(food.x, food.y), 0,
                       texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
           Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
-          IVec2 pos = grid.at(snake.body_blocks.at(i)) +
-                      rotated_texture_pos_adjustment(cell.orientation,
-                                                     IVec2(grid.size));
-          DrawTextureEx(texture, pos.raylib_vec(),
+          Vector2 pos =
+              Vector2Add(grid.at(snake.body_blocks.at(i)),
+                         rotated_texture_pos_adjustment(
+                             cell.orientation, Vector2{grid.size, grid.size}));
+          DrawTextureEx(texture, pos,
                         dir_to_angle(snake.texture_cells.at(i).orientation),
                         texture_scale, WHITE);
         }
@@ -199,13 +202,13 @@ int main() {
 
       BeginDrawing();
       ClearBackground(BLACK);
-      DrawTextureEx(background.texture, grid.at(0, 0).raylib_vec(), 0.0,
-                    texture_scale, WHITE);
+      DrawTextureEx(background.texture, grid.at(0, 0), 0.0, texture_scale,
+                    WHITE);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
         for (IVec2 pos : snake.body_blocks)
-          DrawRectangleV(grid.at(pos).raylib_vec(),
-                         IVec2(grid.size, grid.size).raylib_vec(), WHITE);
+          DrawRectangleV(grid.at(pos), IVec2(grid.size, grid.size).raylib_vec(),
+                         WHITE);
       if (GuiButton(screen.relativeRect(.25f, .5f, .5f, .1f), "Retry")) {
         snake = initial_snake;
         snake_delay = snake.move_delay();
