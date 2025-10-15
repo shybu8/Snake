@@ -35,7 +35,7 @@ set(RESOURCES
     ${CMAKE_SOURCE_DIR}/resources/snake_turn.png
 )
 
-set(GEN_DIR ${CMAKE_SOURCE_DIR}resources/generated)
+set(GEN_DIR ${CMAKE_SOURCE_DIR}/build/generated)
 set(GENERATED_HEADERS)
 
 foreach(RES ${RESOURCES})
