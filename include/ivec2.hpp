@@ -20,4 +20,9 @@ struct IVec2 {
   IVec2 operator+(const IVec2 &rhs) const noexcept;
   IVec2 operator-(const IVec2 &rhs) const noexcept;
   Vector2 raylib_vec() const noexcept;
+
+  IVec2 relative(float x, float y) const noexcept;
+
+  Rectangle relativeRect(float x, float y, float widht,
+                         float height) const noexcept;
 };

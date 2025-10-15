@@ -52,7 +52,7 @@ float dir_to_angle(Direction dir) {
 }
 
 int main() {
-  const IVec2 screen{1280, 720};
+  IVec2 screen{1280, 720};
 
   InitWindow(screen.x, screen.y, "Snake");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
@@ -83,7 +83,7 @@ int main() {
   IVec2 food = {};
   setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
 
-  Snake snake = {
+  Snake initial_snake = {
       .body_blocks = vector<IVec2>{{1, 0}, {0, 0}},
       .texture_cells =
           vector<SnakeTextureCell>{
@@ -100,8 +100,8 @@ int main() {
       .previous_direction = Direction::Right,
       .direction = Direction::Right,
   };
+  Snake snake = initial_snake;
 
-  Direction turn_dir = Direction::Right;
   float snake_delay{snake.move_delay()};
   string score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
   auto game_state = GameState::MainMenu;
@@ -110,7 +110,9 @@ int main() {
   float elapsed = 0;
   while (!should_quit) {
     if (IsWindowResized()) {
-      grid_square_mul = static_cast<float>(GetScreenWidth()) / grid_dims.x;
+      screen.x = GetScreenWidth();
+      screen.y = GetScreenHeight();
+      grid_square_mul = static_cast<float>(screen.x) / grid_dims.x;
       grid.size = static_cast<uint64_t>(grid_square_mul);
       // grid_square_size = static_cast<int>(grid_square_mul);
       texture_scale = grid_square_mul / true_texture_res;
@@ -119,15 +121,15 @@ int main() {
     switch (game_state) {
 
     case GameState::Ongoing:
-      if (IsKeyDown(KEY_DOWN))
-        turn_dir = Direction::Down;
-      else if (IsKeyDown(KEY_UP))
-        turn_dir = Direction::Up;
-      else if (IsKeyDown(KEY_LEFT))
-        turn_dir = Direction::Left;
-      else if (IsKeyDown(KEY_RIGHT))
-        turn_dir = Direction::Right;
-      snake.take_turn(turn_dir);
+      if (IsKeyDown(KEY_DOWN)) {
+        snake.take_turn(Direction::Down);
+      } else if (IsKeyDown(KEY_UP)) {
+        snake.take_turn(Direction::Up);
+      } else if (IsKeyDown(KEY_LEFT)) {
+        snake.take_turn(Direction::Left);
+      } else if (IsKeyDown(KEY_RIGHT)) {
+        snake.take_turn(Direction::Right);
+      }
 
       elapsed += GetFrameTime();
       if (elapsed > snake_delay) {
@@ -192,21 +194,28 @@ int main() {
         for (IVec2 pos : snake.body_blocks)
           DrawRectangleV(grid.at(pos).raylib_vec(),
                          IVec2(grid.size, grid.size).raylib_vec(), WHITE);
+      if (GuiButton(screen.relativeRect(.25f, .5f, .5f, .1f), "Retry")) {
+        snake = initial_snake;
+        snake_delay = snake.move_delay();
+        score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
+        game_state = GameState::Ongoing;
+      }
+
+      if (GuiButton(screen.relativeRect(.25f, .7f, .5f, .1f), "Quit"))
+        should_quit = true;
       EndDrawing();
       break;
 
     case GameState::MainMenu:
-      float scr_q = screen.x / 4;
-      float height = 72;
-      float pos_x = scr_q;
-      float pos_y = screen.y / 6;
       BeginDrawing();
       ClearBackground(GRAY);
-      GuiDrawText("Snake", {pos_x, pos_y, scr_q * 2, height}, TEXT_ALIGN_MIDDLE,
-                  WHITE);
-      if (GuiButton({pos_x, pos_y + 72 * 2, scr_q * 2, height}, "Play"))
+      GuiDrawText("Snake", screen.relativeRect(.4f, .25f, .2f, .1f),
+                  TEXT_ALIGN_MIDDLE, WHITE);
+
+      if (GuiButton(screen.relativeRect(.25f, .5f, .5f, .1f), "Play"))
         game_state = GameState::Ongoing;
-      if (GuiButton({pos_x, pos_y + 72 * 4, scr_q * 2, height}, "Quit"))
+
+      if (GuiButton(screen.relativeRect(.25f, .7f, .5f, .1f), "Quit"))
         should_quit = true;
 
       EndDrawing();

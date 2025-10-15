@@ -37,3 +37,17 @@ IVec2 IVec2::operator-(const IVec2 &rhs) const noexcept {
 Vector2 IVec2::raylib_vec() const noexcept {
   return Vector2{static_cast<float>(x), static_cast<float>(y)};
 }
+
+IVec2 IVec2::relative(float x, float y) const noexcept {
+  return IVec2(this->x * x, this->y * y);
+}
+
+Rectangle IVec2::relativeRect(float x, float y, float width,
+                              float height) const noexcept {
+  return Rectangle{
+      .x = this->x * x,
+      .y = this->y * y,
+      .width = this->x * width,
+      .height = this->y * height,
+  };
+}
