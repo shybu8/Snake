@@ -1,7 +1,5 @@
 #pragma once
 
-#include <structures.hpp>
-
 #include <raylib.h>
 
 struct Resources {

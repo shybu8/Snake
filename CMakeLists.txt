@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
 	src/main.cpp
-	src/structures_impl.cpp
+	src/grid.cpp
 	src/resources.cpp
+	src/ivec2.cpp
+	src/snake.cpp
 )
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

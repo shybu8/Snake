@@ -1,4 +1,5 @@
 #include <resources.hpp>
+#include <snake.hpp>
 
 #include <apple.h>
 #include <grass.h>

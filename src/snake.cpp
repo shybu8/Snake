@@ -1,4 +1,8 @@
-#include "structures.hpp"
+#include <cstdint>
+#include <snake.hpp>
+
+using std::int64_t;
+using std::uint64_t;
 
 auto mod(auto lhs, auto rhs) { return (lhs % rhs + rhs) % rhs; };
 
@@ -87,13 +91,3 @@ bool Snake::collision(IVec2 target, bool include_head) {
 }
 
 float Snake::move_delay() { return 1 / this->speed; }
-
-Vector2 Grid::at(uint64_t x, uint64_t y) {
-  float size_f = static_cast<float>(size);
-  return Vector2{size_f * x, size_f * y};
-}
-
-Vector2 Grid::at(IVec2 pos) {
-  return Vector2{size * static_cast<float>(pos.x),
-                 size * static_cast<float>(pos.y)};
-}

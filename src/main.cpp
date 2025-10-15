@@ -1,5 +1,7 @@
+#include "grid.hpp"
+#include "ivec2.hpp"
 #include "resources.hpp"
-#include "structures.hpp"
+#include "snake.hpp"
 
 #include <raylib.h>
 #include <vector>
@@ -155,7 +157,7 @@ int main() {
       {
         ClearBackground(BLACK);
         DrawTextureEx(background.texture, {0, 0}, 0.0, texture_scale, WHITE);
-        DrawTextureEx(resources.apple, grid.at(food.x, food.y), 0,
+        DrawTextureEx(resources.apple, grid.at(food.x, food.y).raylib_vec(), 0,
                       texture_scale, WHITE);
         for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
           auto cell = snake.texture_cells.at(i);
@@ -188,8 +190,8 @@ int main() {
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
         for (IVec2 pos : snake.body_blocks)
-          DrawRectangleV(grid.at(pos), IVec2{grid.size, grid.size}.raylib_vec(),
-                         WHITE);
+          DrawRectangleV(grid.at(pos).raylib_vec(),
+                         IVec2(grid.size, grid.size).raylib_vec(), WHITE);
       EndDrawing();
       break;
 
