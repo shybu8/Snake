@@ -11,6 +11,6 @@ struct Grid {
 
   Grid(float size, Vector2 offset);
 
-  Vector2 at(uint64_t x, uint64_t y);
-  Vector2 at(IVec2 pos);
+  Vector2 at(uint64_t x, uint64_t y) const;
+  Vector2 at(IVec2 pos) const;
 };

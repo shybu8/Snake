@@ -1,6 +1,8 @@
 #pragma once
 
+#include <grid.hpp>
 #include <ivec2.hpp>
+#include <resources.hpp>
 #include <vector>
 
 using std::vector;
@@ -13,6 +15,11 @@ enum class Direction {
   Down,
   Left,
 };
+
+Vector2 rotated_texture_pos_adjustment(Direction orientation,
+                                       const Vector2 &resolution);
+
+float dir_to_angle(Direction dir);
 
 enum class GameState { Ongoing, Over, MainMenu };
 
@@ -36,8 +43,11 @@ struct Snake {
   Direction direction;
 
   bool take_turn(Direction dir);
-  IVec2 next_head_pos(IVec2 grid_dims);
-  void advance(IVec2 grid_dims);
-  bool collision(IVec2 target, bool include_head = true);
-  float move_delay();
+  IVec2 next_head_pos(const IVec2 &grid_dims) const;
+  void advance(const IVec2 &grid_dims);
+  bool collision(const IVec2 &target, bool include_head = true) const;
+  float move_delay() const;
+  void draw(const Grid &grid_dims, const Resources &resources,
+            const float &texture_scale) const;
+  void grow();
 };

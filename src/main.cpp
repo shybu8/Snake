@@ -1,6 +1,5 @@
 #include "grid.hpp"
 #include "ivec2.hpp"
-#include "raymath.h"
 #include "resources.hpp"
 #include "snake.hpp"
 
@@ -17,40 +16,9 @@ using std::string;
 using std::uint64_t;
 using std::vector;
 
-void setRandomInDims(IVec2 &target, int64_t x, int64_t y) {
+void set_random_in_dims(IVec2 &target, int64_t x, int64_t y) {
   target.x = GetRandomValue(0, x);
   target.y = GetRandomValue(0, y);
-}
-
-Vector2 rotated_texture_pos_adjustment(Direction orientation,
-                                       Vector2 resolution) {
-  using enum Direction;
-  switch (orientation) {
-  case Up:
-    return Vector2{0, 0};
-  case Right:
-    return Vector2{resolution.x, 0};
-  case Down:
-    return Vector2{resolution.x, resolution.y};
-  case Left:
-    return Vector2{0, resolution.y};
-  }
-  return Vector2{};
-}
-
-float dir_to_angle(Direction dir) {
-  using enum Direction;
-  switch (dir) {
-  case Up:
-    return 0;
-  case Right:
-    return 90;
-  case Down:
-    return 180;
-  case Left:
-    return 270;
-  }
-  return 0;
 }
 
 int main() {
@@ -83,7 +51,7 @@ int main() {
 
   const float blinkng_delay = 0.5;
   IVec2 food = {};
-  setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
+  set_random_in_dims(food, grid_dims.x - 1, grid_dims.y - 1);
 
   Snake initial_snake = {
       .body_blocks = vector<IVec2>{{1, 0}, {0, 0}},
@@ -147,19 +115,18 @@ int main() {
       if (elapsed > snake_delay) {
         IVec2 next_head_pos = snake.next_head_pos(grid_dims);
         if (next_head_pos == food) {
-          snake.body_blocks.push_back({});
-          snake.texture_cells.push_back({});
+          snake.grow();
           snake.speed += 0.1;
-
-          do
-            setRandomInDims(food, grid_dims.x - 1, grid_dims.y - 1);
-          while (snake.collision(food));
-
           snake_delay = snake.move_delay();
           score_str = fmt::format("Score: {}", snake.body_blocks.size() - 2);
         }
 
         snake.advance(grid_dims);
+
+        if (next_head_pos == food)
+          do
+            set_random_in_dims(food, grid_dims.x - 1, grid_dims.y - 1);
+          while (snake.collision(food));
 
         if (snake.collision(next_head_pos, false))
           game_state = GameState::Over;
@@ -174,17 +141,7 @@ int main() {
                       WHITE);
         DrawTextureEx(resources.apple, grid.at(food.x, food.y), 0,
                       texture_scale, WHITE);
-        for (uint64_t i = 0; i < snake.body_blocks.size(); ++i) {
-          auto cell = snake.texture_cells.at(i);
-          Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
-          Vector2 pos =
-              Vector2Add(grid.at(snake.body_blocks.at(i)),
-                         rotated_texture_pos_adjustment(
-                             cell.orientation, Vector2{grid.size, grid.size}));
-          DrawTextureEx(texture, pos,
-                        dir_to_angle(snake.texture_cells.at(i).orientation),
-                        texture_scale, WHITE);
-        }
+        snake.draw(grid, resources, texture_scale);
         DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       }
       EndDrawing();
@@ -195,7 +152,7 @@ int main() {
       elapsed += GetFrameTime();
       if (elapsed < blinkng_delay)
         draw_snake = false;
-      else if (elapsed > blinkng_delay * 2)
+      else if (elapsed > blinkng_delay * 2.0f)
         elapsed = 0;
       else
         draw_snake = true;
@@ -206,9 +163,7 @@ int main() {
                     WHITE);
       DrawText(score_str.c_str(), 0, 0, 28, WHITE);
       if (draw_snake)
-        for (IVec2 pos : snake.body_blocks)
-          DrawRectangleV(grid.at(pos), IVec2(grid.size, grid.size).raylib_vec(),
-                         WHITE);
+        snake.draw(grid, resources, texture_scale);
       if (GuiButton(screen.relativeRect(.25f, .5f, .5f, .1f), "Retry")) {
         snake = initial_snake;
         snake_delay = snake.move_delay();

@@ -1,4 +1,6 @@
 #include <cstdint>
+#include <raylib.h>
+#include <raymath.h>
 #include <snake.hpp>
 
 using std::int64_t;
@@ -22,7 +24,7 @@ bool Snake::take_turn(Direction dir) {
   return true;
 }
 
-IVec2 Snake::next_head_pos(IVec2 grid_dims) {
+IVec2 Snake::next_head_pos(const IVec2 &grid_dims) const {
   IVec2 head_pos{this->body_blocks.at(0)};
   switch (this->direction) {
   case Direction::Up:
@@ -41,7 +43,7 @@ IVec2 Snake::next_head_pos(IVec2 grid_dims) {
   return head_pos;
 }
 
-void Snake::advance(IVec2 grid_dims) {
+void Snake::advance(const IVec2 &grid_dims) {
   for (int64_t i = this->body_blocks.size() - 1; i > 0; i--) {
     this->body_blocks.at(i) = this->body_blocks.at(i - 1);
   }
@@ -83,11 +85,62 @@ void Snake::advance(IVec2 grid_dims) {
   this->texture_cells.at(0).orientation = this->direction;
 }
 
-bool Snake::collision(IVec2 target, bool include_head) {
+bool Snake::collision(const IVec2 &target, bool include_head) const {
   for (uint64_t i = !include_head; i < this->body_blocks.size(); i++)
     if (this->body_blocks.at(i) == target)
       return true;
   return false;
 }
 
-float Snake::move_delay() { return 1 / this->speed; }
+float Snake::move_delay() const { return 1 / this->speed; }
+
+Vector2 rotated_texture_pos_adjustment(Direction orientation,
+                                       const Vector2 &resolution) {
+  using enum Direction;
+  switch (orientation) {
+  case Up:
+    return Vector2{0, 0};
+  case Right:
+    return Vector2{resolution.x, 0};
+  case Down:
+    return Vector2{resolution.x, resolution.y};
+  case Left:
+    return Vector2{0, resolution.y};
+  }
+  return Vector2{};
+}
+
+float dir_to_angle(Direction dir) {
+  using enum Direction;
+  switch (dir) {
+  case Up:
+    return 0;
+  case Right:
+    return 90;
+  case Down:
+    return 180;
+  case Left:
+    return 270;
+  }
+  return 0;
+}
+
+void Snake::draw(const Grid &grid, const Resources &resources,
+                 const float &texture_scale) const {
+  for (uint64_t i = 0; i < this->body_blocks.size(); ++i) {
+    auto cell = this->texture_cells.at(i);
+    Texture2D texture = resources.snake[static_cast<int>(cell.kind)];
+    Vector2 pos =
+        Vector2Add(grid.at(this->body_blocks.at(i)),
+                   rotated_texture_pos_adjustment(
+                       cell.orientation, Vector2{grid.size, grid.size}));
+    DrawTextureEx(texture, pos,
+                  dir_to_angle(this->texture_cells.at(i).orientation),
+                  texture_scale, WHITE);
+  }
+}
+
+void Snake::grow() {
+  body_blocks.push_back({});
+  texture_cells.push_back({});
+}

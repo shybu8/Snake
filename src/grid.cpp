@@ -5,10 +5,10 @@ Grid::Grid(float size, Vector2 offset) {
   this->offset = offset;
 }
 
-Vector2 Grid::at(IVec2 pos) {
+Vector2 Grid::at(IVec2 pos) const {
   return Vector2(offset.x + size * pos.x, offset.y + size * pos.y);
 }
 
-Vector2 Grid::at(uint64_t x, uint64_t y) {
+Vector2 Grid::at(uint64_t x, uint64_t y) const {
   return Vector2(offset.x + size * x, offset.y + size * y);
 }
